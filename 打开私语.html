@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>私语 · AI 风格模拟</title><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://api.deepseek.com; img-src data: blob:; font-src 'self'; base-uri 'none'; form-action 'none';">
+<link rel="stylesheet" href="agent功能/界面样式.css"><script src="agent功能/人物风格.js" defer></script>
+<script src="记忆功能/api密钥.js" defer></script>
+<script src="记忆功能/记忆管理.js" defer></script>
+<script src="agent功能/模型与对话.js" defer></script>
+<script src="agent功能/网页交互.js" defer></script></head>
+<body>
+<aside id="sidebar">
+  <a class="brand" href="#" aria-label="私语首页"><span class="brand-symbol" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"><defs><linearGradient id="chat-mark" x1="5" y1="3" x2="43" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#c7b7ef"/><stop offset="1" stop-color="#8570b6"/></linearGradient></defs><rect width="48" height="48" rx="15" fill="url(#chat-mark)"/><path d="M21 13h13a6 6 0 0 1 6 6v6a6 6 0 0 1-6 6h-2l-5 4v-4h-6a6 6 0 0 1-6-6v-6a6 6 0 0 1 6-6Z" fill="#f3edff" fill-opacity=".45"/><path d="M14 17h14a6 6 0 0 1 6 6v5a6 6 0 0 1-6 6H18l-6 4v-5a6 6 0 0 1-4-5v-5a6 6 0 0 1 6-6Z" fill="#fcfaff"/><circle cx="16" cy="26" r="1.6" fill="#8c76b3"/><circle cx="21" cy="26" r="1.6" fill="#8c76b3"/><circle cx="26" cy="26" r="1.6" fill="#8c76b3"/></svg></span><span>私语<small>以你的身份，和他聊聊</small></span></a>
+  <button class="new-button" id="new-chat"><span>＋</span> 新对话</button>
+  <div class="section-label">你的对话 <span id="conversation-count">0</span></div>
+  <nav id="conversation-list" aria-label="对话列表"></nav>
+  <div class="sidebar-bottom"><button id="settings">⚙ 输入api-key</button><div class="backup-actions"><button id="export-chats">导出聊天</button><button id="import-chats">导入聊天</button><input type="file" id="import-file" accept=".json,application/json" hidden></div><p>私语 · v1.0.0.1</p></div>
+</aside>
+<main>
+  <header><button id="menu" aria-label="切换对话列表">☰</button><div><h1 id="chat-title">你想以什么身份与他聊天？</h1><p id="chat-subtitle">选择你的身份，开始一段对话</p></div><div class="header-actions"><button id="open-guide" class="guide-button" type="button" aria-haspopup="dialog"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 5c-2-2-5-2-7-1v11c2-1 5-1 7 1 2-2 5-2 7-1V4c-2-1-5-1-7 1Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 5v11" stroke="currentColor" stroke-width="1.4"/></svg>使用指南</button></div></header>
+  <div id="config-banner" hidden>输入 DeepSeek api-key，就可以开始聊天。<button id="configure">去输入 →</button></div>
+  <div id="scroll-area">
+    <section id="welcome"><div class="welcome-symbol">“</div><div class="eyebrow">选择身份，开始聊天</div><h2>你想以什么身份与他聊天？</h2><p>选择你的身份，看看他会怎样回应你。</p><div class="welcome-cards"><button id="quick-group"><span>☕</span><strong>我是女生</strong><small>我是一个和他认识的女生</small></button><button id="quick-girlfriend"><span>♡</span><strong>我是女朋友</strong><small>我是他的女朋友</small></button></div><p class="fine-print">模仿表达方式，不代表现实中本人的想法</p></section>
+    <section id="setup-page" hidden aria-labelledby="setup-title">
+      <div class="setup-heading"><div class="eyebrow">特殊模式 · 先了解背景</div><h2 id="setup-title">先说说现在的情况</h2><p id="setup-identity"></p></div>
+      <div id="setup-messages" aria-live="polite"></div>
+      <form id="setup-composer"><label for="setup-input">回答背景助手</label><textarea id="setup-input" rows="3" maxlength="4000" placeholder="说说发生了什么，也可以说“不指定”…"></textarea><button id="setup-send" class="primary" type="submit">回答并继续 →</button><p class="fine-print">这里只准备背景，确认后才进入正式聊天。</p></form>
+      <section id="background-card" hidden><div class="eyebrow">背景已整理 · 可以修改</div><h2>从这个背景开始？</h2><p>可以继续回答问题或补充情况，也可以修改摘要后直接开始。</p><label for="background-text">背景摘要</label><textarea id="background-text" rows="4" maxlength="4000"></textarea><div id="setup-questions"></div><button id="confirm-background" class="primary">确认背景，开始聊天 →</button></section>
+    </section>
+    <section id="conversation" hidden>
+      <div id="background-pill" hidden></div>
+      <details id="setup-notes" hidden><summary>查看背景设置过程</summary><div id="setup-history"></div></details>
+      <div id="messages" aria-live="polite"></div>
+    </section>
+  </div>
+  <footer><div id="error" role="alert" hidden><span id="error-text"></span><button id="retry" hidden>重试</button></div><form id="composer"><textarea id="message" rows="1" placeholder="先新建一段对话…" maxlength="4000" disabled aria-label="输入消息"></textarea><button id="send" type="submit" disabled aria-label="发送消息">↑</button></form><div class="composer-note" id="composer-note">Enter 发送 · Shift + Enter 换行 · 每个对话独立记忆</div></footer>
+</main>
+<dialog id="new-dialog"><form id="new-form"><button type="button" class="close" id="close-new" aria-label="关闭">×</button><div class="eyebrow">新的开始</div><h2>设定这段对话</h2><p>开场设置只影响当前对话。</p><fieldset><legend>你的身份</legend><label class="option"><input type="radio" name="audience" value="group" checked><span><strong>我是女生</strong><small>我是一个和他认识的女生</small></span></label><label class="option"><input type="radio" name="audience" value="girlfriend"><span><strong>我是女朋友</strong><small>我是他的女朋友</small></span></label></fieldset><fieldset><legend>从什么场景开始</legend><label class="option"><input type="radio" name="mode" value="normal" checked><span><strong>正常模式</strong><small>直接开始日常聊天</small></span></label><label class="option"><input type="radio" name="mode" value="special"><span><strong>特殊模式</strong><small>先说明背景，确认后开始</small></span></label></fieldset><button class="primary" type="submit" id="create">创建对话 →</button></form></dialog>
+<dialog id="settings-dialog"><form id="settings-form"><button type="button" class="close" id="close-settings" aria-label="关闭">×</button><div class="eyebrow">连接模型</div><h2>输入api-key</h2><p>输入密钥即可使用，无需安装。密钥只在本次页面打开期间使用，关闭或刷新后需重新输入。</p><div class="model-info"><strong id="model-name">deepseek-flash</strong><small id="model-base">https://api.deepseek.com</small></div><label for="api-key">API 密钥</label><input id="api-key" type="password" autocomplete="off" placeholder="粘贴你的 DeepSeek 密钥" required maxlength="500"><p id="settings-status" role="status"></p><button class="primary" type="submit" id="save-key">连接并开始</button><p class="fine-print">请填写你自己的 API Key。密钥与当前对话仅直接发送至 DeepSeek 官方接口。聊天保存在此浏览器中；换电脑可导出并导入聊天备份，备份不含密钥。</p></form></dialog>
+<dialog id="edit-dialog"><form id="edit-form"><button class="close" id="close-edit" type="button" aria-label="关闭">×</button><h2 id="edit-title">重命名对话</h2><input id="edit-name" maxlength="80" required aria-label="对话标题"><p id="delete-description" hidden>删除此对话的消息、背景和记忆。其他对话不受影响。</p><button class="primary" id="edit-submit" type="submit">保存</button></form></dialog>
+<dialog id="guide-dialog" aria-labelledby="guide-title"><div class="guide-shell"><button id="close-guide" class="close" type="button" aria-label="关闭使用指南">×</button><div class="eyebrow">私语 · v1.0.0.1</div><h2 id="guide-title">私语使用指南</h2><p class="guide-intro">选一个身份，聊一段属于此刻的对话。</p><div class="guide-body" tabindex="0" aria-label="使用指南内容">
+<section class="guide-start"><h3>三步开始</h3><ol><li>点左下角“输入api-key”，填写自己的 DeepSeek API Key。</li><li>点首页身份卡片或左侧“新对话”，选择身份和场景。</li><li>正常模式直接聊天；特殊模式先准备背景，再开始聊天。</li></ol></section>
+<section><h3>01 · 选择你的身份</h3><p><strong>我是女生：</strong>你是一个和他认识的女生。他的语气带暧昧、讨好和卑微，但仍在意并服从自己的女朋友。</p><p><strong>我是女朋友：</strong>你是他的女朋友。他会更黏人、低姿态地哄你，情绪随着这段对话发展。</p></section>
+<section><h3>02 · 正常模式与特殊模式</h3><p><strong>正常模式：</strong>直接进入日常聊天，不需要设置背景，也不会默认发生分手或争执。</p><p><strong>特殊模式：</strong>先进入独立背景页，助手主动问“现在是什么情况？”。回答后，它会整理摘要，并按需要补充追问，每次最多两个问题。不想指定的内容可以说“不指定”。你可以继续补充或修改摘要，点击“确认背景，开始聊天”后才进入正式对话。</p><p>身份与开场背景开始后固定。想换身份或重新设定场景，请新建对话。背景准备记录与正式聊天分别保存。</p></section>
+<section><h3>03 · 发送消息与重试</h3><p>输入文字后按 Enter 或点击发送；Shift + Enter 换行。回复句数在1～4句之间随机变化，每句显示为一个气泡，可以是长句或短句。目前支持文字和 Unicode 表情。</p><p>等待回复时发送按钮会暂停。失败后点击“重试”继续发送上一条消息；失败不会写入虚构的回复。背景设置也可以重试。</p></section>
+<section><h3>04 · 管理多个对话</h3><p>左侧列表可以切换聊天。每段聊天分别保存自己的背景、消息和记忆，不会共享其他对话的内容。</p><p>每段对话右边的“⋯”菜单可以重命名或删除该对话。删除需确认，并会移除这段聊天的背景和记忆；重要聊天请先导出备份。</p></section>
+<section><h3>05 · 记忆保存在什么地方</h3><p>聊天自动保存在当前浏览器的本地存储。用同一浏览器、同一文件位置重新打开，可以继续已有对话。长对话会整理较早的内容，并结合最近 12 轮消息继续回应。</p><p>隐私模式、清理浏览器数据、移动文件位置或更换浏览器，可能使原有聊天不可见。程序文件夹不会自动写入聊天记录，换电脑也不会自动带走浏览器中的记忆。</p></section>
+<section><h3>06 · 导出与导入聊天</h3><p><strong>导出聊天：</strong>点击左下角按钮，勾选要备份的聊天，支持多选和全选。点击“导出所选聊天”后，浏览器会下载 JSON 备份，包含所选消息、背景和记忆，不包含 API 密钥。</p><p><strong>导入聊天：</strong>点击按钮选择之前导出的 JSON 文件。导入会追加聊天，不覆盖当前内容；重复导入可能产生另一份对话副本。可在换电脑、换浏览器后用它恢复聊天。</p></section>
+<section><h3>07 · API Key 与连接</h3><p>使用自己的 DeepSeek API Key，需要联网并有可用余额。填写后再次打开“输入api-key”会显示“已填写”，仍可输入另一份密钥并点击“更换密钥”。“已填写”仅表示已录入，不代表接口已经验证有效。</p><p>密钥只在当前页面内存中使用，不写入程序文件或聊天备份。刷新、关闭或重新打开页面后，需要重新填写。生成回复时，当前对话与风格参考直接发送到 DeepSeek 官方接口。</p><p>连接失败时先检查网络、密钥和余额；浏览器或网络环境也可能限制本地网页联网。</p></section>
+<section><h3>08 · 分享给别人</h3><p>分享版需发送完整文件夹，保留“agent功能”“记忆功能”和入口 HTML 的目录结构。对方双击“打开私语.html”，填写自己的密钥即可使用。若你自行放入了聊天备份，分享前请移走；原有聊天可另行按需导出。</p></section>
+<p class="guide-note">私语是 AI 表达风格模拟，包含创作设定，不代表现实中本人的想法或真实经历。</p>
+</div><button id="guide-done" class="primary" type="button">知道了，开始聊</button></div></dialog>
+<dialog id="export-dialog" aria-labelledby="export-title"><form id="export-form"><button class="close" id="close-export" type="button" aria-label="关闭">×</button><div class="eyebrow">聊天备份</div><h2 id="export-title">选择要导出的聊天</h2><p>可选择一段或多段聊天。备份包含消息、背景和记忆，不含 API 密钥。</p><div class="export-toolbar"><label><input id="export-all" type="checkbox"> 全选</label><span id="export-count" aria-live="polite"></span></div><div id="export-list"></div><p id="export-empty" hidden>还没有聊天，先新建一段对话吧。</p><p id="export-error" role="alert"></p><button class="primary" id="export-submit" type="submit" disabled>导出所选聊天</button></form></dialog></body></html>
